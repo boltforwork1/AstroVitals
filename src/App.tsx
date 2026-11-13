@@ -8,28 +8,33 @@ import RadiationPage from '@/pages/RadiationPage';
 import Mind from '@/pages/Mind';
 import Training from '@/pages/Training';
 import Assistant from '@/pages/Assistant';
+import Alerts from '@/pages/Alerts';
 import NotFound from '@/pages/NotFound';
 import { RecordsProvider } from '@/context/RecordsContext';
+import { AlertsProvider } from '@/context/AlertsContext';
 
 export default function App() {
   return (
     <RecordsProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/body-map" element={<BodyMap />} />
-            <Route path="/check-in" element={<CheckIn />} />
-            <Route path="/trends" element={<Trends />} />
-            <Route path="/radiation" element={<RadiationPage />} />
-            <Route path="/mind" element={<Mind />} />
-            <Route path="/training" element={<Training />} />
-            <Route path="/assistant" element={<Assistant />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <AlertsProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route element={<Layout />}>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/body-map" element={<BodyMap />} />
+              <Route path="/check-in" element={<CheckIn />} />
+              <Route path="/trends" element={<Trends />} />
+              <Route path="/radiation" element={<RadiationPage />} />
+              <Route path="/mind" element={<Mind />} />
+              <Route path="/training" element={<Training />} />
+              <Route path="/assistant" element={<Assistant />} />
+              <Route path="/alerts" element={<Alerts />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </AlertsProvider>
     </RecordsProvider>
   );
 }

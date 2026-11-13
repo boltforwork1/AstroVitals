@@ -9,6 +9,7 @@ import {
   Dumbbell,
   Bot,
   Activity,
+  Bell,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -20,6 +21,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/alerts', label: 'Alerts', icon: Bell },
   { to: '/body-map', label: 'Body Map', icon: PersonStanding },
   { to: '/check-in', label: 'Check-in', icon: ClipboardCheck },
   { to: '/trends', label: 'Trends', icon: TrendingUp },

@@ -10,6 +10,7 @@ import AttentionPanel from '@/components/dashboard/AttentionPanel';
 import IndicatorCard from '@/components/dashboard/IndicatorCard';
 import RadiationMiniCard from '@/components/dashboard/RadiationMiniCard';
 import IndicatorModal from '@/components/IndicatorModal';
+import EarlyWarningsCard from '@/components/alerts/EarlyWarningsCard';
 
 export default function Dashboard() {
   const { records, latestRecord: todayRecord } = useRecords();
@@ -49,6 +50,8 @@ export default function Dashboard() {
           <AttentionPanel todayRecord={todayRecord} records={records} />
         </div>
       </div>
+
+      <EarlyWarningsCard />
 
       {/* Row 2: Indicator Cards */}
       <div>

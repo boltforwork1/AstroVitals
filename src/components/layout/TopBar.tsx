@@ -1,6 +1,7 @@
 import { Satellite } from 'lucide-react';
 import { crewMember } from '@/data/mockRecords';
 import { useRecords } from '@/context/RecordsContext';
+import AlertsBell from '@/components/alerts/AlertsBell';
 
 export default function TopBar() {
   const { latestRecord } = useRecords();
@@ -29,9 +30,12 @@ export default function TopBar() {
         <span className="text-space-muted">/ {missionLength}</span>
       </div>
 
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20">
-        <Satellite className="w-3.5 h-3.5 text-accent" />
-        <span className="text-xs font-medium text-accent">ISS</span>
+      <div className="flex items-center gap-3">
+        <AlertsBell />
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20">
+          <Satellite className="w-3.5 h-3.5 text-accent" />
+          <span className="text-xs font-medium text-accent">ISS</span>
+        </div>
       </div>
     </header>
   );
