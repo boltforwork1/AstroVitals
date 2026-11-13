@@ -2,18 +2,17 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Radiation, ChevronRight } from 'lucide-react';
 import type { DailyRecord } from '@/types/health';
+import { CAREER_LIMIT_LABEL, CAREER_LIMIT_MSV } from '@/data/radiationConfig';
 
 interface RadiationMiniCardProps {
   records: DailyRecord[];
 }
 
-const MISSION_LIMIT_MSV = 250;
-
 export default function RadiationMiniCard({ records }: RadiationMiniCardProps) {
   const navigate = useNavigate();
   const totalDose = records.reduce((sum, r) => sum + r.radiationDose, 0);
   const roundedDose = Math.round(totalDose * 100) / 100;
-  const percent = Math.min(100, (totalDose / MISSION_LIMIT_MSV) * 100);
+  const percent = Math.min(100, (totalDose / CAREER_LIMIT_MSV) * 100);
   const barColor = percent > 75 ? '#EF4444' : percent > 50 ? '#F59E0B' : '#22C55E';
 
   return (
@@ -33,13 +32,13 @@ export default function RadiationMiniCard({ records }: RadiationMiniCardProps) {
         <div className="flex items-center justify-between mb-2">
           <div>
             <p className="text-sm font-semibold text-space-text">Cumulative Radiation Dose</p>
-            <p className="text-xs text-space-muted mt-0.5">Illustrative limit for demo</p>
+            <p className="text-xs text-space-muted mt-0.5">{CAREER_LIMIT_LABEL}</p>
           </div>
           <div className="text-right">
             <span className="text-xl font-bold text-space-text tabular-nums">
               {roundedDose.toFixed(1)}
             </span>
-            <span className="text-xs text-space-muted ml-1">/ {MISSION_LIMIT_MSV} mSv</span>
+            <span className="text-xs text-space-muted ml-1">/ {CAREER_LIMIT_MSV} mSv</span>
           </div>
         </div>
 
@@ -54,7 +53,7 @@ export default function RadiationMiniCard({ records }: RadiationMiniCardProps) {
         </div>
 
         <p className="text-xs text-space-muted mt-2">
-          {percent.toFixed(1)}% of mission limit
+          {percent.toFixed(1)}% of career limit
         </p>
       </div>
 

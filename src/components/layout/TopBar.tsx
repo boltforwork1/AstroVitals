@@ -2,6 +2,7 @@ import { Satellite } from 'lucide-react';
 import { crewMember } from '@/data/mockRecords';
 import { useRecords } from '@/context/RecordsContext';
 import AlertsBell from '@/components/alerts/AlertsBell';
+import StormBanner from './StormBanner';
 
 export default function TopBar() {
   const { latestRecord } = useRecords();
@@ -9,6 +10,7 @@ export default function TopBar() {
   const { missionLength } = crewMember;
 
   return (
+    <>
     <header className="flex items-center justify-between h-16 px-4 sm:px-6 border-b border-space-border bg-space-surface/30 backdrop-blur-sm">
       <div className="flex items-center gap-3 min-w-0">
         <div className="hidden sm:flex w-9 h-9 rounded-full bg-gradient-to-br from-accent/20 to-accent/5 border border-accent/20 items-center justify-center shrink-0">
@@ -38,5 +40,7 @@ export default function TopBar() {
         </div>
       </div>
     </header>
+    <StormBanner />
+    </>
   );
 }
