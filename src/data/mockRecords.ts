@@ -80,5 +80,42 @@ export const mockRecords: DailyRecord[] = (() => {
     });
   }
 
+  // --- Override last 12 days (indices 35-46, mission days 36-47) ---
+  // Drift sleep down to ~5.8 (caution), exercise down to ~50 (critical),
+  // mood down to ~3.0 (caution), heart rate up to ~90 (still normal).
+  // BP, glucose, temperature stay in normal range.
+  const overrideStart = 35;
+  const overrideCount = 12;
+  for (let j = 0; j < overrideCount; j++) {
+    const idx = overrideStart + j;
+    const rec = records[idx];
+    const t = j / (overrideCount - 1); // 0 → 1 over the 12 days
+
+    // Sleep: 7.0 → 5.8 (caution by end)
+    rec.sleep = round(7.0 - t * 1.2 + (rand() - 0.5) * 0.3, 1);
+
+    // Exercise: 130 → 50, with final 3 days at 48-50 (critical, below 60)
+    if (j < 9) {
+      rec.exercise = Math.round(130 - t * 75 + (rand() - 0.5) * 10);
+    } else {
+      rec.exercise = Math.round(48 + rand() * 4); // 48-52
+    }
+
+    // Mood: 3.8 → 3.0 (caution by end)
+    rec.mood = round(3.8 - t * 0.8 + (rand() - 0.5) * 0.2, 1);
+
+    // Heart rate: 80 → 90 (still normal, 60-100)
+    rec.heartRate = Math.round(80 + t * 10 + (rand() - 0.5) * 3);
+
+    // Keep BP, glucose, temperature in normal range with slight noise
+    rec.systolic = Math.round(116 + (rand() - 0.5) * 6);
+    rec.diastolic = Math.round(74 + (rand() - 0.5) * 4);
+    rec.glucose = Math.round(85 + (rand() - 0.5) * 8);
+    rec.temperature = round(36.6 + (rand() - 0.5) * 0.3, 1);
+
+    // Radiation dose stays in normal range
+    rec.radiationDose = round(0.5 + rand() * 0.2, 2);
+  }
+
   return records;
 })();
