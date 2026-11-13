@@ -48,7 +48,12 @@ export function getSeries(
     range === 'All' ? records : records.slice(Math.max(0, records.length - range));
   return sliced.map((r) => ({
     missionDay: r.missionDay,
-    value: key === 'healthScore' ? calculateHealthScore(r) : r[key as IndicatorKey],
+    value:
+      key === 'healthScore'
+        ? calculateHealthScore(r)
+        : key === 'bloodPressure'
+          ? r.systolic
+          : r[key as IndicatorKey],
   }));
 }
 
@@ -83,6 +88,8 @@ export function metricStatus(key: TrendMetric, value: number): 'normal' | 'cauti
     if (value >= 70) return 'caution';
     return 'critical';
   }
+  // Blood pressure has no single indicator entry; judge by systolic.
+  if (key === 'bloodPressure') return getStatus('systolic', value);
   return getStatus(key as IndicatorKey, value);
 }
 
@@ -144,3 +151,8 @@ export function exportRecordsCsv(records: DailyRecord[]): void {
   link.click();
   URL.revokeObjectURL(url);
 }
+
+
+export { exportRecordsCsv }
+
+export { METRIC_LABEL, countOutOfRange, getStats, metricStatus }
