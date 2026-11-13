@@ -1,0 +1,78 @@
+import type { Indicator, IndicatorKey } from '@/types/health';
+
+export const indicators: Record<IndicatorKey, Indicator> = {
+  heartRate: {
+    key: 'heartRate',
+    label: 'Heart Rate',
+    unit: 'bpm',
+    normalRange: { min: 60, max: 100 },
+    cautionRange: { min: 50, max: 110 },
+    icon: 'HeartPulse',
+    description: 'Resting heart rate measured in beats per minute.',
+  },
+  systolic: {
+    key: 'systolic',
+    label: 'Systolic BP',
+    unit: 'mmHg',
+    normalRange: { min: 90, max: 120 },
+    cautionRange: { min: 80, max: 140 },
+    icon: 'Gauge',
+    description: 'Pressure in arteries when the heart beats.',
+  },
+  diastolic: {
+    key: 'diastolic',
+    label: 'Diastolic BP',
+    unit: 'mmHg',
+    normalRange: { min: 60, max: 80 },
+    cautionRange: { min: 50, max: 90 },
+    icon: 'Gauge',
+    description: 'Pressure in arteries between beats.',
+  },
+  glucose: {
+    key: 'glucose',
+    label: 'Glucose',
+    unit: 'mg/dL',
+    normalRange: { min: 70, max: 100 },
+    cautionRange: { min: 60, max: 125 },
+    icon: 'Droplets',
+    description: 'Blood glucose level after fasting.',
+  },
+  temperature: {
+    key: 'temperature',
+    label: 'Body Temperature',
+    unit: '°C',
+    normalRange: { min: 36.1, max: 37.2 },
+    cautionRange: { min: 35.5, max: 38.0 },
+    icon: 'Thermometer',
+    description: 'Core body temperature in Celsius.',
+  },
+  sleep: {
+    key: 'sleep',
+    label: 'Sleep',
+    unit: 'hours',
+    normalRange: { min: 7, max: 9 },
+    cautionRange: { min: 5, max: 10 },
+    icon: 'Moon',
+    description: 'Total sleep duration per 24-hour cycle.',
+  },
+  mood: {
+    key: 'mood',
+    label: 'Mood',
+    unit: '/5',
+    normalRange: { min: 3.5, max: 5 },
+    cautionRange: { min: 2.5, max: 5 },
+    icon: 'Smile',
+    description: 'Self-reported mood score on a 1–5 scale.',
+  },
+  exercise: {
+    key: 'exercise',
+    label: 'Exercise',
+    unit: 'min',
+    normalRange: { min: 120, max: 180 },
+    cautionRange: { min: 60, max: 240 },
+    icon: 'Dumbbell',
+    description: 'Daily resistance and aerobic exercise duration.',
+  },
+};
+
+export const indicatorList: Indicator[] = Object.values(indicators);
