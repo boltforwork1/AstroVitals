@@ -5,41 +5,8 @@ import type { HazardId } from '@/data/hazards';
 import { hazards } from '@/data/hazards';
 import { mockRecords } from '@/data/mockRecords';
 import HumanBody from '@/components/bodymap/HumanBody';
-import type { BodyLayer } from '@/components/bodymap/HumanBody';
 import RegionPanel from '@/components/bodymap/RegionPanel';
 import type { RegionId } from '@/data/bodyRegions';
-
-const LAYER_REGIONS: Record<BodyLayer, RegionId[]> = {
-  organs: ['brain', 'eyes', 'heart', 'immune', 'gut'],
-  skeleton: ['bones'],
-  muscles: ['muscles'],
-};
-
-const LAYERS: { key: BodyLayer; label: string }[] = [
-  { key: 'organs', label: 'Organs' },
-  { key: 'skeleton', label: 'Skeleton' },
-  { key: 'muscles', label: 'Muscles' },
-];
-
-function LayerSwitcher({ layer, onChange }: { layer: BodyLayer; onChange: (l: BodyLayer) => void }) {
-  return (
-    <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-space-surface border border-space-border">
-      {LAYERS.map((l) => (
-        <button
-          key={l.key}
-          onClick={() => onChange(l.key)}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
-            layer === l.key
-              ? 'bg-accent/10 text-accent border border-accent/20'
-              : 'text-space-muted hover:text-space-text border border-transparent'
-          }`}
-        >
-          {l.label}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 export default function BodyMap() {
   const records = mockRecords;
@@ -47,15 +14,6 @@ export default function BodyMap() {
   const [selectedRegion, setSelectedRegion] = useState<RegionId | null>(null);
   const [activeHazard, setActiveHazard] = useState<HazardId | null>(null);
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
-  const [layer, setLayer] = useState<BodyLayer>('organs');
-
-  const handleLayerChange = (newLayer: BodyLayer) => {
-    setLayer(newLayer);
-    if (selectedRegion && !LAYER_REGIONS[newLayer].includes(selectedRegion)) {
-      setSelectedRegion(null);
-      setMobilePanelOpen(false);
-    }
-  };
 
   const handleSelectRegion = (id: RegionId) => {
     setSelectedRegion(id);
@@ -66,14 +24,11 @@ export default function BodyMap() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Layer switcher + hazard filter chips */}
+      {/* Hazard filter chips */}
       <div className="px-4 sm:px-6 pt-6 pb-3">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
-          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-space-text">
-            Body Map
-          </h1>
-          <LayerSwitcher layer={layer} onChange={handleLayerChange} />
-        </div>
+        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-space-text mb-3">
+          Body Map
+        </h1>
         <div className="flex flex-wrap items-center gap-2">
           <FilterChip
             label="All"
@@ -133,7 +88,6 @@ export default function BodyMap() {
             selectedRegion={selectedRegion}
             onSelectRegion={handleSelectRegion}
             activeHazard={activeHazard}
-            layer={layer}
           />
         </div>
 
