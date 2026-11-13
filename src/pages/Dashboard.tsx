@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { CalendarDays } from 'lucide-react';
 import type { IndicatorKey } from '@/types/health';
-import { mockRecords, crewMember } from '@/data/mockRecords';
+import { crewMember } from '@/data/mockRecords';
 import { indicatorList } from '@/data/indicators';
+import { useRecords } from '@/context/RecordsContext';
 import HealthScoreCard from '@/components/dashboard/HealthScoreCard';
 import AttentionPanel from '@/components/dashboard/AttentionPanel';
 import IndicatorCard from '@/components/dashboard/IndicatorCard';
@@ -11,8 +12,7 @@ import RadiationMiniCard from '@/components/dashboard/RadiationMiniCard';
 import IndicatorModal from '@/components/IndicatorModal';
 
 export default function Dashboard() {
-  const records = mockRecords;
-  const todayRecord = records[records.length - 1];
+  const { records, latestRecord: todayRecord } = useRecords();
   const [selectedKey, setSelectedKey] = useState<IndicatorKey | null>(null);
 
   const dateLabel = `Mission Day ${todayRecord.missionDay}`;

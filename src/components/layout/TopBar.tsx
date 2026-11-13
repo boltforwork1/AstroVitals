@@ -1,8 +1,10 @@
 import { Satellite } from 'lucide-react';
-import { crewMember, mockRecords } from '@/data/mockRecords';
+import { crewMember } from '@/data/mockRecords';
+import { useRecords } from '@/context/RecordsContext';
 
 export default function TopBar() {
-  const latestDay = mockRecords[mockRecords.length - 1].missionDay;
+  const { latestRecord } = useRecords();
+  const latestDay = latestRecord.missionDay;
   const { missionLength } = crewMember;
 
   return (

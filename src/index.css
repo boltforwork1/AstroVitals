@@ -46,3 +46,45 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-muted);
 }
+
+/* Range slider (check-in sleep input) */
+.slider-accent {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--color-border);
+  outline: none;
+  cursor: pointer;
+}
+
+.slider-accent::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  background: var(--color-accent);
+  border: 3px solid var(--color-bg);
+  box-shadow: 0 0 10px var(--color-accent-glow);
+  transition: transform 0.15s ease;
+}
+
+.slider-accent::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+.slider-accent::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  background: var(--color-accent);
+  border: 3px solid var(--color-bg);
+  box-shadow: 0 0 10px var(--color-accent-glow);
+}
+
+.slider-accent:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+}
+

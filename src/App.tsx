@@ -9,24 +9,27 @@ import Mind from '@/pages/Mind';
 import Training from '@/pages/Training';
 import Assistant from '@/pages/Assistant';
 import NotFound from '@/pages/NotFound';
+import { RecordsProvider } from '@/context/RecordsContext';
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<Layout />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/body-map" element={<BodyMap />} />
-          <Route path="/check-in" element={<CheckIn />} />
-          <Route path="/trends" element={<Trends />} />
-          <Route path="/radiation" element={<RadiationPage />} />
-          <Route path="/mind" element={<Mind />} />
-          <Route path="/training" element={<Training />} />
-          <Route path="/assistant" element={<Assistant />} />
-          <Route path="*" element={<NotFound />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <RecordsProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/body-map" element={<BodyMap />} />
+            <Route path="/check-in" element={<CheckIn />} />
+            <Route path="/trends" element={<Trends />} />
+            <Route path="/radiation" element={<RadiationPage />} />
+            <Route path="/mind" element={<Mind />} />
+            <Route path="/training" element={<Training />} />
+            <Route path="/assistant" element={<Assistant />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </RecordsProvider>
   );
 }

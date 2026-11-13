@@ -3,14 +3,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import type { HazardId } from '@/data/hazards';
 import { hazards } from '@/data/hazards';
-import { mockRecords } from '@/data/mockRecords';
 import HumanBody from '@/components/bodymap/HumanBody';
+import { useRecords } from '@/context/RecordsContext';
 import RegionPanel from '@/components/bodymap/RegionPanel';
 import type { RegionId } from '@/data/bodyRegions';
 
 export default function BodyMap() {
-  const records = mockRecords;
-  const todayRecord = records[records.length - 1];
+  const { records, latestRecord: todayRecord } = useRecords();
   const [selectedRegion, setSelectedRegion] = useState<RegionId | null>(null);
   const [activeHazard, setActiveHazard] = useState<HazardId | null>(null);
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
