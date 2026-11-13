@@ -151,8 +151,3 @@ export function exportRecordsCsv(records: DailyRecord[]): void {
   link.click();
   URL.revokeObjectURL(url);
 }
-
-
-export { exportRecordsCsv }
-
-export { METRIC_LABEL, countOutOfRange, getStats, metricStatus }
