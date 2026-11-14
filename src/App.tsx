@@ -11,6 +11,8 @@ import Assistant from '@/pages/Assistant';
 import Alerts from '@/pages/Alerts';
 import NotFound from '@/pages/NotFound';
 import { RecordsProvider } from '@/context/RecordsContext';
+import { GamificationProvider } from '@/context/GamificationContext';
+import ToastHost from '@/components/gamification/ToastHost';
 import { AlertsProvider } from '@/context/AlertsContext';
 import { StormProvider } from '@/context/StormContext';
 import { WellbeingProvider } from '@/context/WellbeingContext';
@@ -21,6 +23,7 @@ export default function App() {
       <WellbeingProvider>
       <StormProvider>
         <AlertsProvider>
+          <GamificationProvider>
           <BrowserRouter>
             <Routes>
               <Route element={<Layout />}>
@@ -38,6 +41,8 @@ export default function App() {
               </Route>
             </Routes>
           </BrowserRouter>
+          <ToastHost />
+          </GamificationProvider>
         </AlertsProvider>
       </StormProvider>
       </WellbeingProvider>
