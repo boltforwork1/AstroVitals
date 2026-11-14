@@ -37,14 +37,19 @@ export default function WeeklyExerciseChart({ days, target }: WeeklyExerciseChar
             domain={[0, Math.ceil(maxValue * 1.1)]}
           />
           <Tooltip
-            cursor={{ fill: 'var(--color-accent-glow)' }}
+            cursor={{ fill: 'rgba(34, 211, 238, 0.08)' }}
             contentStyle={{
-              backgroundColor: 'var(--color-surface)',
-              border: '1px solid var(--color-border)',
-              borderRadius: 8,
-              color: 'var(--color-text)',
-              fontSize: 12,
+              background: '#0F1626',
+              border: '1px solid #1C2740',
+              borderRadius: 12,
+              padding: '10px 14px',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
+              color: '#E6ECF8',
+              fontSize: 13,
             }}
+            labelStyle={{ color: '#E6ECF8', fontWeight: 600, marginBottom: 4 }}
+            itemStyle={{ color: '#E6ECF8', fontSize: 13 }}
+            wrapperStyle={{ outline: 'none', zIndex: 50 }}
             formatter={(value) => [`${value} min`, 'Exercise']}
           />
           <ReferenceLine
