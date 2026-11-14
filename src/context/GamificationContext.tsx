@@ -199,7 +199,3 @@ export function useGamification(): GamificationContextValue {
   if (!ctx) throw new Error('useGamification must be used within GamificationProvider');
   return ctx;
 }
-
-export { useGamification }
-
-export { GamificationProvider }
