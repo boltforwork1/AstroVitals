@@ -13,10 +13,12 @@ import NotFound from '@/pages/NotFound';
 import { RecordsProvider } from '@/context/RecordsContext';
 import { AlertsProvider } from '@/context/AlertsContext';
 import { StormProvider } from '@/context/StormContext';
+import { WellbeingProvider } from '@/context/WellbeingContext';
 
 export default function App() {
   return (
     <RecordsProvider>
+      <WellbeingProvider>
       <StormProvider>
         <AlertsProvider>
           <BrowserRouter>
@@ -38,6 +40,7 @@ export default function App() {
           </BrowserRouter>
         </AlertsProvider>
       </StormProvider>
+      </WellbeingProvider>
     </RecordsProvider>
   );
 }
