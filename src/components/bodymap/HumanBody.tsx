@@ -1,10 +1,23 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import type { DailyRecord } from '@/types/health';
+import type { DailyRecord, Status } from '@/types/health';
 import type { RegionId } from '@/data/bodyRegions';
 import type { HazardId } from '@/data/hazards';
 import { getRegionStatus } from '@/utils/regionStatus';
 import { statusColor } from '@/utils/status';
+import {
+  ANCHORS,
+  BODY_PATH,
+  BONES,
+  BRAIN,
+  EYES,
+  GUT,
+  HEAD,
+  HEART,
+  IMMUNE,
+  MUSCLES,
+} from '@/components/bodymap/bodyGeometry';
 
 interface HumanBodyProps {
   record: DailyRecord;
@@ -13,16 +26,16 @@ interface HumanBodyProps {
   activeHazard: HazardId | null;
 }
 
-interface RegionShape {
-  id: RegionId;
-  anchor: { x: number; y: number };
-  labelPos: { x: number; y: number };
-  labelSide: 'left' | 'right';
-  hitArea: React.ReactNode;
-  shapes: React.ReactNode;
+interface RegionState {
+  status: Status;
+  score: number;
+  color: string;
+  dimmed: boolean;
+  active: boolean;
+  opacity: number;
 }
 
-const STATUS_LABEL: Record<string, string> = {
+const STATUS_LABEL: Record<Status, string> = {
   normal: 'Normal',
   caution: 'Caution',
   critical: 'Critical',
@@ -58,113 +71,292 @@ const regionMap_hazards: Record<RegionId, HazardId[]> = {
   muscles: ['gravity', 'distance'],
 };
 
-// viewBox 300 x 640. Body centered at x=150.
-const VB_W = 300;
-const VB_H = 640;
+const LEFT_LABEL_IDS: RegionId[] = ['heart', 'gut', 'muscles'];
+const RIGHT_LABEL_IDS: RegionId[] = ['brain', 'eyes', 'immune', 'bones'];
+const LIMB_LONG_BONES = ['radius', 'ulna', 'tibia', 'fibula'];
 
-const regionShapes: RegionShape[] = [
-  {
-    id: 'brain',
-    anchor: { x: 150, y: 48 },
-    labelPos: { x: 280, y: 44 },
-    labelSide: 'right',
-    hitArea: <rect x="108" y="10" width="84" height="68" rx="34" fill="transparent" />,
-    shapes: <circle cx="150" cy="48" r="26" fillOpacity={0.22} />,
-  },
-  {
-    id: 'eyes',
-    anchor: { x: 150, y: 66 },
-    labelPos: { x: 280, y: 100 },
-    labelSide: 'right',
-    hitArea: <rect x="118" y="56" width="64" height="20" rx="10" fill="transparent" />,
-    shapes: (
-      <>
-        <ellipse cx="138" cy="66" rx="8" ry="5" fillOpacity={0.22} />
-        <ellipse cx="162" cy="66" rx="8" ry="5" fillOpacity={0.22} />
-      </>
-    ),
-  },
-  {
-    id: 'heart',
-    anchor: { x: 134, y: 200 },
-    labelPos: { x: 20, y: 200 },
-    labelSide: 'left',
-    hitArea: <rect x="98" y="168" width="60" height="64" rx="30" fill="transparent" />,
-    shapes: (
+const SKELETON_BASE = 0.6;
+const MUSCLE_BASE = 0.8;
+const ORGAN_BASE = 1;
+
+const organPaint = (c: string, b: number) => ({
+  fill: c,
+  fillOpacity: 0.25,
+  stroke: c,
+  strokeWidth: 2 + b,
+  pointerEvents: 'all' as const,
+});
+
+function renderBones(c: string, b: number) {
+  const sw = (n: number) => n + b;
+  const fillPaint = {
+    fill: c,
+    fillOpacity: 0.25,
+    stroke: c,
+    strokeWidth: sw(1),
+    pointerEvents: 'all' as const,
+  };
+  const strokePaint = {
+    fill: 'none',
+    stroke: c,
+    pointerEvents: 'stroke' as const,
+  };
+  return (
+    <>
+      <line x1={150} y1={100} x2={150} y2={340} stroke="transparent" strokeWidth={10} pointerEvents="all" />
+      {BONES.clavicles.map((d, i) => (
+        <path key={`hit-clav-${i}`} d={d} fill="none" stroke="transparent" strokeWidth={10} pointerEvents="all" />
+      ))}
+      {BONES.ribs.map((d, i) => (
+        <path key={`hit-rib-${i}`} d={d} fill="none" stroke="transparent" strokeWidth={8} pointerEvents="all" />
+      ))}
+      {BONES.longBones
+        .filter(([name]) => LIMB_LONG_BONES.includes(name))
+        .map(([name, x1, y1, x2, y2, w]) => (
+          <line
+            key={`hit-${name}-${x1}-${y1}`}
+            x1={x1}
+            y1={y1}
+            x2={x2}
+            y2={y2}
+            stroke="transparent"
+            strokeWidth={w + 10}
+            pointerEvents="all"
+          />
+        ))}
+
+      {BONES.vertebrae.map(([cx, cy, w, h], i) => (
+        <rect
+          key={`vert-${i}`}
+          x={cx - w / 2}
+          y={cy - h / 2}
+          width={w}
+          height={h}
+          rx={2}
+          {...fillPaint}
+        />
+      ))}
+      <path d={BONES.sacrum} {...fillPaint} />
+      <path d={BONES.sternum} {...fillPaint} />
+      {BONES.pelvis.map((d, i) => (
+        <path key={`pelvis-${i}`} d={d} {...fillPaint} />
+      ))}
+      <path d={BONES.pubis} {...strokePaint} strokeWidth={sw(1.4)} />
+      {BONES.clavicles.map((d, i) => (
+        <path key={`clav-${i}`} d={d} {...strokePaint} strokeWidth={sw(2.2)} strokeLinecap="round" />
+      ))}
+      {BONES.ribs.map((d, i) => (
+        <path key={`rib-${i}`} d={d} {...strokePaint} strokeWidth={sw(1.2)} strokeLinecap="round" />
+      ))}
+      {BONES.handsFeet.map((d, i) => (
+        <path key={`hf-${i}`} d={d} {...strokePaint} strokeWidth={sw(1.6)} strokeLinecap="round" />
+      ))}
+      {BONES.longBones.map(([name, x1, y1, x2, y2, w]) => (
+        <line
+          key={`long-${name}-${x1}-${y1}`}
+          x1={x1}
+          y1={y1}
+          x2={x2}
+          y2={y2}
+          stroke={c}
+          strokeWidth={sw(w)}
+          strokeLinecap="round"
+          pointerEvents="stroke"
+        />
+      ))}
+      {BONES.joints.map(([cx, cy, r], i) => (
+        <circle
+          key={`joint-${i}`}
+          cx={cx}
+          cy={cy}
+          r={r}
+          fill={c}
+          fillOpacity={0.1}
+          stroke={c}
+          strokeWidth={sw(1)}
+          pointerEvents="all"
+        />
+      ))}
+    </>
+  );
+}
+
+function renderMuscles(c: string, b: number) {
+  return (
+    <>
+      {MUSCLES.map((m, i) => (
+        <g key={`muscle-${m.kind}-${i}`}>
+          <path
+            d={m.d}
+            fill={c}
+            fillOpacity={0.2}
+            stroke={c}
+            strokeWidth={1.8 + b}
+            pointerEvents="all"
+          />
+          {m.fibres.map((d, j) => (
+            <path
+              key={`fibre-${j}`}
+              d={d}
+              fill="none"
+              stroke={c}
+              strokeWidth={1.2 + b}
+              opacity={0.6}
+              pointerEvents="stroke"
+            />
+          ))}
+        </g>
+      ))}
+    </>
+  );
+}
+
+function renderImmune(c: string, b: number) {
+  return (
+    <>
+      <circle cx={150} cy={152} r={24} fill="transparent" pointerEvents="all" />
+      {IMMUNE.nodes.map(([x, y], i) => (
+        <circle key={`hit-node-${i}`} cx={x} cy={y} r={9} fill="transparent" pointerEvents="all" />
+      ))}
+      <path d={IMMUNE.thymus} {...organPaint(c, b)} />
+      {IMMUNE.nodes.map(([x, y, r], i) => (
+        <circle key={`node-${i}`} cx={x} cy={y} r={r} {...organPaint(c, b)} />
+      ))}
+    </>
+  );
+}
+
+function renderGut(c: string, b: number) {
+  return (
+    <>
+      <rect x={118} y={236} width={64} height={94} rx={14} fill="transparent" pointerEvents="all" />
+      <path d={GUT.stomach} {...organPaint(c, b)} />
       <path
-        d="M136 176 C124 162 104 168 104 190 C104 210 124 226 136 236 C148 226 168 210 168 190 C168 168 148 162 136 176 Z"
-        fillOpacity={0.22}
+        d={GUT.colon}
+        fill="none"
+        stroke={c}
+        strokeWidth={5 + b}
+        strokeOpacity={0.7}
+        strokeLinecap="round"
+        pointerEvents="stroke"
       />
-    ),
-  },
-  {
-    id: 'immune',
-    anchor: { x: 150, y: 135 },
-    labelPos: { x: 280, y: 160 },
-    labelSide: 'right',
-    hitArea: <rect x="104" y="108" width="92" height="50" rx="25" fill="transparent" />,
-    shapes: (
-      <>
-        {/* Thymus at base of neck */}
-        <ellipse cx="150" cy="124" rx="14" ry="9" fillOpacity={0.22} />
-        {/* Lymph nodes */}
-        <circle cx="134" cy="114" r="4" fillOpacity={0.22} />
-        <circle cx="166" cy="114" r="4" fillOpacity={0.22} />
-        <circle cx="120" cy="138" r="4" fillOpacity={0.22} />
-        <circle cx="180" cy="138" r="4" fillOpacity={0.22} />
-      </>
-    ),
-  },
-  {
-    id: 'gut',
-    anchor: { x: 150, y: 310 },
-    labelPos: { x: 20, y: 310 },
-    labelSide: 'left',
-    hitArea: <rect x="116" y="278" width="68" height="56" rx="28" fill="transparent" />,
-    shapes: (
       <path
-        d="M132 280 Q118 286 120 304 Q122 322 142 320 Q156 316 154 302 Q152 286 132 280 Z"
-        fillOpacity={0.22}
+        d={GUT.intestine}
+        fill="none"
+        stroke={c}
+        strokeWidth={2.6 + b}
+        strokeLinecap="round"
+        pointerEvents="stroke"
       />
-    ),
-  },
-  {
-    id: 'bones',
-    anchor: { x: 150, y: 420 },
-    labelPos: { x: 280, y: 420 },
-    labelSide: 'right',
-    hitArea: <rect x="108" y="130" width="84" height="470" rx="40" fill="transparent" />,
-    shapes: (
-      <>
-        {/* Spine */}
-        <line x1="150" y1="130" x2="150" y2="400" strokeWidth={3} strokeOpacity={0.7} />
-        {/* Left tibia */}
-        <line x1="118" y1="450" x2="114" y2="600" strokeWidth={3} strokeOpacity={0.7} />
-        {/* Right tibia */}
-        <line x1="182" y1="450" x2="186" y2="600" strokeWidth={3} strokeOpacity={0.7} />
-      </>
-    ),
-  },
-  {
-    id: 'muscles',
-    anchor: { x: 150, y: 400 },
-    labelPos: { x: 20, y: 460 },
-    labelSide: 'left',
-    hitArea: <rect x="68" y="155" width="164" height="380" rx="30" fill="transparent" />,
-    shapes: (
-      <>
-        {/* Left upper arm */}
-        <ellipse cx="82" cy="195" rx="12" ry="28" fillOpacity={0.22} />
-        {/* Right upper arm */}
-        <ellipse cx="218" cy="195" rx="12" ry="28" fillOpacity={0.22} />
-        {/* Left thigh */}
-        <ellipse cx="116" cy="470" rx="16" ry="38" fillOpacity={0.22} />
-        {/* Right thigh */}
-        <ellipse cx="184" cy="470" rx="16" ry="38" fillOpacity={0.22} />
-      </>
-    ),
-  },
-];
+    </>
+  );
+}
+
+function renderHeart(c: string, b: number) {
+  return (
+    <>
+      <path d={HEART} fill="none" stroke="transparent" strokeWidth={14} pointerEvents="all" />
+      <path d={HEART} {...organPaint(c, b)} />
+    </>
+  );
+}
+
+function renderBrain(c: string, b: number) {
+  return (
+    <>
+      <path d={BRAIN.outline} fill="none" stroke="transparent" strokeWidth={10} pointerEvents="all" />
+      <path d={BRAIN.outline} {...organPaint(c, b)} />
+      {BRAIN.folds.map((d, i) => (
+        <path
+          key={`fold-${i}`}
+          d={d}
+          fill="none"
+          stroke={c}
+          strokeWidth={1.2 + b}
+          strokeLinecap="round"
+          pointerEvents="stroke"
+        />
+      ))}
+    </>
+  );
+}
+
+function renderEyes(c: string, b: number) {
+  return (
+    <>
+      {EYES.shapes.map((d, i) => (
+        <path key={`eye-hit-${i}`} d={d} fill="none" stroke="transparent" strokeWidth={14} pointerEvents="all" />
+      ))}
+      {EYES.shapes.map((d, i) => (
+        <path key={`eye-${i}`} d={d} {...organPaint(c, b)} />
+      ))}
+      {EYES.pupils.map(([x, y, r], i) => (
+        <circle key={`pupil-${i}`} cx={x} cy={y} r={r} fill={c} pointerEvents="all" />
+      ))}
+    </>
+  );
+}
+
+interface RegionGroupProps {
+  id: RegionId;
+  state: RegionState;
+  selected: boolean;
+  beatDuration: number;
+  onSelect: (id: RegionId) => void;
+  onHover: (id: RegionId | null) => void;
+  children: (color: string, boost: number) => ReactNode;
+}
+
+function RegionGroup({ id, state, selected, beatDuration, onSelect, onHover, children }: RegionGroupProps) {
+  const isHeart = id === 'heart';
+  const animate = isHeart
+    ? { scale: [1, 1.04, 1] }
+    : selected
+      ? { scale: [1, 1.02, 1] }
+      : { scale: 1 };
+  const transition = isHeart
+    ? { duration: beatDuration, repeat: Infinity, ease: 'easeInOut' as const }
+    : selected
+      ? { duration: 1.8, repeat: Infinity, ease: 'easeInOut' as const }
+      : { duration: 0 };
+
+  return (
+    <motion.g
+      role="button"
+      tabIndex={0}
+      aria-label={`${REGION_NAMES[id]}: score ${state.score}, ${STATUS_LABEL[state.status]}`}
+      onPointerEnter={() => onHover(id)}
+      onPointerLeave={() => onHover(null)}
+      onFocus={() => onHover(id)}
+      onBlur={() => onHover(null)}
+      onClick={() => onSelect(id)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect(id);
+        }
+      }}
+      animate={animate}
+      transition={transition}
+      style={{
+        cursor: state.dimmed ? 'default' : 'pointer',
+        outline: 'none',
+        transformBox: 'fill-box' as CSSProperties['transformBox'],
+        transformOrigin: 'center',
+      }}
+    >
+      <g
+        opacity={state.opacity}
+        style={{
+          transition: 'opacity 0.25s ease, filter 0.25s ease',
+          filter: state.active ? `drop-shadow(0 0 6px ${state.color}80)` : 'none',
+        }}
+      >
+        {children(state.color, state.active ? 1 : 0)}
+      </g>
+    </motion.g>
+  );
+}
 
 export default function HumanBody({
   record,
@@ -173,8 +365,6 @@ export default function HumanBody({
   activeHazard,
 }: HumanBodyProps) {
   const [hoveredRegion, setHoveredRegion] = useState<RegionId | null>(null);
-  const [tooltip, setTooltip] = useState<{ x: number; y: number; id: RegionId } | null>(null);
-  const svgRef = useRef<SVGSVGElement>(null);
   const [showLabels, setShowLabels] = useState(true);
 
   useEffect(() => {
@@ -184,231 +374,130 @@ export default function HumanBody({
     return () => window.removeEventListener('resize', checkWidth);
   }, []);
 
-  const heartRate = record.heartRate;
-  const beatDuration = 60 / heartRate;
+  const beatDuration = 60 / record.heartRate;
+  const focusId = hoveredRegion ?? selectedRegion;
 
   const isDimmed = (id: RegionId): boolean => {
     if (!activeHazard) return false;
     return !regionMap_hazards[id].includes(activeHazard);
   };
 
-  const regions = regionShapes.map((r) => {
-    const status = getRegionStatus(r.id, record);
-    const color = statusColor(status.status);
-    const dimmed = isDimmed(r.id);
-    const isSelected = selectedRegion === r.id;
-    const isHovered = hoveredRegion === r.id;
-    return { ...r, status, color, dimmed, isSelected, isHovered };
-  });
+  const stateOf = (id: RegionId, base: number): RegionState => {
+    const { status, score } = getRegionStatus(id, record);
+    const dimmed = isDimmed(id);
+    const active = focusId === id;
+    const opacity = dimmed ? 0.25 : active ? 1 : focusId ? 0.3 : base;
+    return { status, score, color: statusColor(status), dimmed, active, opacity };
+  };
 
-  const handleMouseMove = (e: React.MouseEvent, id: RegionId) => {
-    if (!svgRef.current) return;
-    const rect = svgRef.current.getBoundingClientRect();
-    const svgX = ((e.clientX - rect.left) / rect.width) * VB_W;
-    const svgY = ((e.clientY - rect.top) / rect.height) * VB_H;
-    setTooltip({ x: svgX, y: svgY, id });
+  const renderGroup = (id: RegionId, base: number, paint: (c: string, b: number) => ReactNode) => (
+    <RegionGroup
+      key={id}
+      id={id}
+      state={stateOf(id, base)}
+      selected={selectedRegion === id}
+      beatDuration={beatDuration}
+      onSelect={onSelectRegion}
+      onHover={setHoveredRegion}
+    >
+      {paint}
+    </RegionGroup>
+  );
+
+  const renderLabel = (id: RegionId, left: boolean) => {
+    const { status, score } = getRegionStatus(id, record);
+    const color = statusColor(status);
+    const [ax, ay] = ANCHORS[id];
+    const labelX = left ? 20 : 280;
+    const lineStartX = left ? 24 : 276;
+    return (
+      <g key={`label-${id}`} opacity={isDimmed(id) ? 0.3 : 1} pointerEvents="none">
+        <line
+          x1={lineStartX}
+          y1={ay}
+          x2={ax}
+          y2={ay}
+          stroke={color}
+          strokeWidth={0.8}
+          strokeDasharray="2 2"
+          opacity={0.5}
+        />
+        <circle cx={ax} cy={ay} r={2} fill={color} />
+        <text
+          x={labelX}
+          y={ay - 2}
+          textAnchor={left ? 'end' : 'start'}
+          fill={color}
+          fontSize={10}
+          fontWeight={600}
+          fontFamily="Inter, sans-serif"
+        >
+          {REGION_NAMES[id]}
+        </text>
+        <text
+          x={labelX}
+          y={ay + 9}
+          textAnchor={left ? 'end' : 'start'}
+          fill="#8A97B5"
+          fontSize={9}
+          fontFamily="Inter, sans-serif"
+        >
+          {score}/100
+        </text>
+      </g>
+    );
   };
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
       <svg
-        ref={svgRef}
-        viewBox={`0 0 ${VB_W} ${VB_H}`}
-        className="w-full h-full"
-        style={{ maxHeight: '85vh', filter: 'drop-shadow(0 0 20px rgba(34,211,238,0.06))' }}
+        viewBox="-70 0 440 710"
+        className="w-full h-auto mx-auto"
+        style={{ maxHeight: '80vh', filter: 'drop-shadow(0 0 20px rgba(34,211,238,0.06))' }}
+        role="group"
+        aria-label="Body map"
       >
-        <defs>
-          <linearGradient id="bodyFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#0F1626" />
-            <stop offset="100%" stopColor="#0A1020" />
-          </linearGradient>
-          <radialGradient id="bodyGlow" cx="0.5" cy="0.5" r="0.5">
-            <stop offset="0%" stopColor="#22D3EE" stopOpacity="0.05" />
-            <stop offset="100%" stopColor="#22D3EE" stopOpacity="0" />
-          </radialGradient>
-        </defs>
+        <ellipse cx={150} cy={355} rx={130} ry={340} fill="#22D3EE" fillOpacity={0.05} pointerEvents="none" />
 
-        {/* Soft cyan glow behind body */}
-        <ellipse cx="150" cy="320" rx="90" ry="300" fill="url(#bodyGlow)" />
-
-        {/* Body silhouette */}
-        <g
-          fill="url(#bodyFill)"
+        <path
+          d={BODY_PATH}
+          fill="#0F1A30"
           stroke="#22D3EE"
-          strokeWidth="1"
-          strokeOpacity="0.25"
+          strokeOpacity={0.5}
+          strokeWidth={1.4}
           strokeLinejoin="round"
-        >
-          {/* Head */}
-          <ellipse cx="150" cy="50" rx="36" ry="42" />
-          {/* Neck */}
-          <path d="M138 90 L138 106 L162 106 L162 90 Z" />
-          {/* Torso: shoulders → taper to waist → straight hip */}
-          <path d="M108 110 Q96 116 92 130 L84 195 Q80 235 86 265 L92 300 Q96 340 100 380 L104 400 L196 400 L200 380 Q204 340 208 300 L214 265 Q220 235 216 195 L208 130 Q204 116 192 110 Z" />
-          {/* Left arm */}
-          <path d="M92 128 Q76 136 70 158 L60 235 Q56 275 58 305 L66 325 L76 323 L80 295 L86 255 L92 195 Q94 165 96 138 Z" />
-          {/* Right arm */}
-          <path d="M208 128 Q224 136 230 158 L240 235 Q244 275 242 305 L234 325 L224 323 L220 295 L214 255 L208 195 Q206 165 204 138 Z" />
-          {/* Left leg */}
-          <path d="M104 400 Q94 420 92 448 L86 535 Q82 575 86 605 L94 620 L108 618 Q110 608 112 588 L116 500 Q118 450 120 410 Z" />
-          {/* Right leg */}
-          <path d="M196 400 Q206 420 208 448 L214 535 Q218 575 214 605 L206 620 L192 618 Q190 608 188 588 L184 500 Q182 450 180 410 Z" />
-        </g>
+          pointerEvents="none"
+        />
+        <ellipse
+          cx={HEAD.cx}
+          cy={HEAD.cy}
+          rx={HEAD.rx}
+          ry={HEAD.ry}
+          fill="#0F1A30"
+          stroke="#22D3EE"
+          strokeOpacity={0.5}
+          strokeWidth={1.4}
+          pointerEvents="none"
+        />
 
-        {/* Region shapes */}
-        {regions.map((r) => (
-          <RegionButton
-            key={r.id}
-            region={r}
-            beatDuration={beatDuration}
-            showLabels={showLabels}
-            onSelect={() => onSelectRegion(r.id)}
-            onHover={(hovered) => setHoveredRegion(hovered ? r.id : null)}
-            onTooltipMove={(e) => handleMouseMove(e, r.id)}
-            onTooltipLeave={() => setTooltip(null)}
-          />
-        ))}
+        {renderGroup('bones', SKELETON_BASE, renderBones)}
+        {renderGroup('muscles', MUSCLE_BASE, renderMuscles)}
+        {renderGroup('immune', ORGAN_BASE, renderImmune)}
+        {renderGroup('gut', ORGAN_BASE, renderGut)}
+        {renderGroup('heart', ORGAN_BASE, renderHeart)}
+        {renderGroup('brain', ORGAN_BASE, renderBrain)}
+        {renderGroup('eyes', ORGAN_BASE, renderEyes)}
+
+        {showLabels && (
+          <g pointerEvents="none">
+            {LEFT_LABEL_IDS.map((id) => renderLabel(id, true))}
+            {RIGHT_LABEL_IDS.map((id) => renderLabel(id, false))}
+          </g>
+        )}
       </svg>
 
-      {/* Floating tooltip */}
-      {tooltip && hoveredRegion && (
-        <RegionTooltip id={hoveredRegion} record={record} />
-      )}
+      {hoveredRegion && <RegionTooltip id={hoveredRegion} record={record} />}
     </div>
-  );
-}
-
-interface RegionButtonProps {
-  region: RegionShape & {
-    status: ReturnType<typeof getRegionStatus>;
-    color: string;
-    dimmed: boolean;
-    isSelected: boolean;
-    isHovered: boolean;
-  };
-  beatDuration: number;
-  showLabels: boolean;
-  onSelect: () => void;
-  onHover: (hovered: boolean) => void;
-  onTooltipMove: (e: React.MouseEvent) => void;
-  onTooltipLeave: () => void;
-}
-
-function RegionButton({
-  region,
-  beatDuration,
-  showLabels,
-  onSelect,
-  onHover,
-  onTooltipMove,
-  onTooltipLeave,
-}: RegionButtonProps) {
-  const { color, dimmed, isSelected, isHovered } = region;
-  const isHeart = region.id === 'heart';
-  const fillOpacity = dimmed ? 0.08 : isSelected ? 0.4 : isHovered ? 0.35 : 0.25;
-  const strokeOpacity = dimmed ? 0.3 : 1;
-  const strokeWidth = isSelected ? 3 : isHovered ? 2.5 : 2;
-  const overallOpacity = dimmed ? 0.25 : 1;
-
-  return (
-    <g
-      opacity={overallOpacity}
-      onMouseEnter={() => onHover(true)}
-      onMouseLeave={() => { onHover(false); onTooltipLeave(); }}
-      onMouseMove={onTooltipMove}
-    >
-      <g
-        role="button"
-        tabIndex={0}
-        aria-label={`${region.id}: score ${region.status.score}, ${STATUS_LABEL[region.status.status]}`}
-        onClick={onSelect}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            onSelect();
-          }
-        }}
-        style={{ cursor: dimmed ? 'default' : 'pointer', outline: 'none' }}
-        onFocus={() => onHover(true)}
-        onBlur={() => { onHover(false); onTooltipLeave(); }}
-      >
-        <g pointerEvents="all">{region.hitArea}</g>
-
-        <motion.g
-          animate={
-            isHeart
-              ? { scale: [1, 1.08, 1] }
-              : isSelected
-                ? { scale: [1, 1.04, 1] }
-                : { scale: 1 }
-          }
-          transition={
-            isHeart
-              ? { duration: beatDuration, repeat: Infinity, ease: 'easeInOut' }
-              : isSelected
-                ? { duration: 1.8, repeat: Infinity, ease: 'easeInOut' }
-                : { duration: 0 }
-          }
-          style={{ transformOrigin: `${region.anchor.x}px ${region.anchor.y}px`, transformBox: 'fill-box' as React.CSSProperties['transformBox'] }}
-        >
-          <g
-            fill={color}
-            stroke={color}
-            fillOpacity={fillOpacity}
-            strokeOpacity={strokeOpacity}
-            strokeWidth={strokeWidth}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            style={{
-              filter: isHovered || isSelected ? `drop-shadow(0 0 6px ${color}80)` : 'none',
-              transition: 'filter 0.2s, fill-opacity 0.2s, stroke-width 0.2s',
-            }}
-          >
-            {region.shapes}
-          </g>
-        </motion.g>
-      </g>
-
-      {showLabels && (
-        <RegionLabel
-          region={region}
-          color={color}
-          dimmed={dimmed}
-          statusScore={region.status.score}
-        />
-      )}
-    </g>
-  );
-}
-
-function RegionLabel({
-  region,
-  color,
-  dimmed,
-  statusScore,
-}: {
-  region: RegionShape;
-  color: string;
-  dimmed: boolean;
-  statusScore: number;
-}) {
-  const { anchor, labelPos, labelSide, id } = region;
-  const textAnchor = labelSide === 'left' ? 'start' : 'end';
-  const bendX = labelSide === 'left' ? 60 : 240;
-  const labelEndX = labelSide === 'left' ? labelPos.x + 34 : labelPos.x - 34;
-
-  return (
-    <g opacity={dimmed ? 0.3 : 0.85} pointerEvents="none">
-      <line x1={anchor.x} y1={anchor.y} x2={bendX} y2={labelPos.y} stroke={color} strokeWidth="0.6" strokeDasharray="2 2" opacity={0.5} />
-      <line x1={bendX} y1={labelPos.y} x2={labelEndX} y2={labelPos.y} stroke={color} strokeWidth="0.6" strokeDasharray="2 2" opacity={0.5} />
-      <circle cx={anchor.x} cy={anchor.y} r="2" fill={color} opacity={0.7} />
-      <text x={labelPos.x} y={labelPos.y - 3} textAnchor={textAnchor} fill={color} fontSize="10" fontWeight="600" fontFamily="Inter, sans-serif">
-        {REGION_NAMES[id]}
-      </text>
-      <text x={labelPos.x} y={labelPos.y + 8} textAnchor={textAnchor} fill="#8A97B5" fontSize="8" fontFamily="Inter, sans-serif">
-        {statusScore}/100
-      </text>
-    </g>
   );
 }
 
