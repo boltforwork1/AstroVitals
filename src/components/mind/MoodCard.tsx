@@ -12,18 +12,7 @@ import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import type { DailyRecord } from '@/types/health';
 import { getTrend } from '@/utils/trend';
-
-const MOOD_FACES = [
-  { max: 1.5, face: '😣' },
-  { max: 2.5, face: '😕' },
-  { max: 3.5, face: '😐' },
-  { max: 4.5, face: '🙂' },
-  { max: 5.1, face: '😊' },
-];
-
-function faceFor(value: number): string {
-  return MOOD_FACES.find((f) => value <= f.max)?.face ?? '😐';
-}
+import { MoodIcon, getMoodLabel } from '@/components/ui/MoodIcon';
 
 interface MoodCardProps {
   records: DailyRecord[];
@@ -52,13 +41,12 @@ export default function MoodCard({ records }: MoodCardProps) {
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-          className="text-4xl"
         >
-          {faceFor(latest)}
+          <MoodIcon level={latest} size="lg" />
         </motion.div>
         <div>
           <p className="text-2xl font-bold text-space-text tabular-nums">{latest.toFixed(1)}</p>
-          <p className="text-xs text-space-muted">today</p>
+          <p className="text-xs text-space-muted">{getMoodLabel(latest)} · today</p>
         </div>
         <div className="ml-auto text-right">
           <p className="text-lg font-semibold text-space-text tabular-nums">{avg7.toFixed(1)}</p>
