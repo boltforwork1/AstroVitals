@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Brain, ChevronDown, HeartPulse, ShieldCheck } from 'lucide-react';
+import { Brain, ChevronDown, HeartPulse, Image, ShieldCheck } from 'lucide-react';
+import MeasureImageModal from '@/components/ui/MeasureImageModal';
+import { getMeasureGuide } from '@/data/measureGuides';
 
 const POINTS = [
   {
@@ -18,6 +20,8 @@ const POINTS = [
 
 export default function WhyRadiationCard() {
   const [showMethod, setShowMethod] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const guide = getMeasureGuide('radiation');
 
   return (
     <section aria-labelledby="why-radiation-title" className="bg-space-surface border border-space-border rounded-xl p-5 sm:p-6">
@@ -47,12 +51,32 @@ export default function WhyRadiationCard() {
           How it is measured
         </button>
         {showMethod && (
-          <p className="text-sm text-space-muted leading-relaxed mt-3 bg-space-bg/40 border border-space-border rounded-lg p-3">
-            Crew members wear personal dosimeters, and the spacecraft carries radiation monitors. In this app the dose
-            is simulated, so the numbers show how the system works rather than a real measurement.
-          </p>
+          <>
+            <p className="text-sm text-space-muted leading-relaxed mt-3 bg-space-bg/40 border border-space-border rounded-lg p-3">
+              Crew members wear personal dosimeters, and the spacecraft carries radiation monitors. In this app the dose
+              is simulated, so the numbers show how the system works rather than a real measurement.
+            </p>
+            {guide && (
+              <button
+                type="button"
+                onClick={() => setModalOpen(true)}
+                className="flex items-center gap-1.5 mt-3 text-sm font-medium text-accent hover:text-accent/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded"
+              >
+                <Image className="w-4 h-4" />
+                See how dosimetry works
+              </button>
+            )}
+          </>
         )}
       </div>
+
+      {guide && (
+        <MeasureImageModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          guide={guide}
+        />
+      )}
     </section>
   );
 }

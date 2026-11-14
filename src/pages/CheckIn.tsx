@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { AlertTriangle, Save } from 'lucide-react';
+import { TriangleAlert as AlertTriangle, Save } from 'lucide-react';
 import type { DailyRecord } from '@/types/health';
 import { indicators } from '@/data/indicators';
 import { indicatorInfo } from '@/data/indicatorInfo';
@@ -233,6 +233,7 @@ export default function CheckIn() {
                   : getStatus('heartRate', parsed.heartRate)
               }
               measure={indicatorInfo.heartRate.measure}
+              guideKey="heartRate"
               onChange={(v) => setForm((f) => ({ ...f, heartRate: v }))}
             />
             <NumberVitalField
@@ -247,6 +248,7 @@ export default function CheckIn() {
                   : getStatus('systolic', parsed.systolic)
               }
               measure={indicatorInfo.systolic.measure}
+              guideKey="systolic"
               onChange={(v) => setForm((f) => ({ ...f, systolic: v }))}
             />
             <NumberVitalField
@@ -261,6 +263,7 @@ export default function CheckIn() {
                   : getStatus('diastolic', parsed.diastolic)
               }
               measure={indicatorInfo.diastolic.measure}
+              guideKey="diastolic"
               onChange={(v) => setForm((f) => ({ ...f, diastolic: v }))}
             />
             <NumberVitalField
@@ -275,6 +278,7 @@ export default function CheckIn() {
                   : getStatus('glucose', parsed.glucose)
               }
               measure={indicatorInfo.glucose.measure}
+              guideKey="glucose"
               onChange={(v) => setForm((f) => ({ ...f, glucose: v }))}
             />
             <NumberVitalField
@@ -290,6 +294,7 @@ export default function CheckIn() {
                   : getStatus('temperature', parsed.temperature)
               }
               measure={indicatorInfo.temperature.measure}
+              guideKey="temperature"
               onChange={(v) => setForm((f) => ({ ...f, temperature: v }))}
             />
           </div>
