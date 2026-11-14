@@ -12,7 +12,7 @@ export default function TopBar() {
 
   return (
     <>
-    <header className="flex items-center justify-between h-16 px-4 sm:px-6 border-b border-space-border bg-space-surface/30 backdrop-blur-sm">
+    <header className="sticky top-0 z-[60] flex items-center justify-between h-16 px-4 sm:px-6 border-b border-space-border bg-space-bg">
       <div className="flex items-center gap-3 min-w-0">
         <div className="hidden sm:flex w-9 h-9 rounded-full bg-gradient-to-br from-accent/20 to-accent/5 border border-accent/20 items-center justify-center shrink-0">
           <span className="text-xs font-semibold text-accent">AR</span>
