@@ -449,15 +449,22 @@ export default function HumanBody({
   };
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center">
+    <div className="relative w-full h-full min-h-0 py-3 overflow-visible flex items-center justify-center">
       <svg
-        viewBox="-70 0 440 710"
-        className="w-full h-auto mx-auto"
+        viewBox="-70 -18 440 746"
+        className="block w-full h-auto mx-auto"
+        overflow="visible"
         style={{ maxHeight: '80vh', filter: 'drop-shadow(0 0 20px rgba(34,211,238,0.06))' }}
         role="group"
         aria-label="Body map"
       >
-        <ellipse cx={150} cy={355} rx={130} ry={340} fill="#22D3EE" fillOpacity={0.05} pointerEvents="none" />
+        <defs>
+          <radialGradient id="bodyMapGlow" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0%" stopColor="#22D3EE" stopOpacity="0.06" />
+            <stop offset="100%" stopColor="#22D3EE" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <ellipse cx={150} cy={355} rx={105} ry={330} fill="url(#bodyMapGlow)" pointerEvents="none" />
 
         <path
           d={BODY_PATH}
