@@ -200,5 +200,6 @@ export function useGamification(): GamificationContextValue {
   return ctx;
 }
 
-
 export { useGamification }
+
+export { GamificationProvider }
