@@ -187,20 +187,51 @@ export default function Assistant() {
         <div className="max-w-3xl mx-auto">
           <div className="flex items-end gap-3">
             <div className="flex-1 relative">
+              <style>{`
+                .astro-chat-input::placeholder { color: #6B7280; }
+                .astro-chat-input:-webkit-autofill {
+                  -webkit-text-fill-color: #0B1220;
+                  box-shadow: 0 0 0 1000px #FFFFFF inset;
+                }
+                .astro-chat-input:focus {
+                  border-color: #22D3EE;
+                  outline: none;
+                  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.35);
+                }
+                .astro-chat-input:disabled {
+                  background: #E2E8F0;
+                  color: #64748B;
+                  -webkit-text-fill-color: #64748B;
+                  cursor: not-allowed;
+                }
+              `}</style>
               <textarea
                 ref={textareaRef}
                 value={input}
                 onChange={(e) => {
                   setInput(e.target.value.slice(0, MAX_INPUT));
                   e.target.style.height = 'auto';
-                  e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                  e.target.style.height = Math.min(e.target.scrollHeight, 96) + 'px';
                 }}
                 onKeyDown={handleKeyDown}
                 rows={1}
                 disabled={loading}
-                placeholder="Ask about your health data..."
-                className="w-full resize-none rounded-xl bg-space-bg/60 border border-space-border focus:border-accent/50 px-4 py-3 text-sm text-space-text placeholder-space-muted/60 outline-none transition-colors disabled:opacity-50"
-                style={{ minHeight: '44px', maxHeight: '120px' }}
+                placeholder="Ask about your health, symptoms, or what to do next..."
+                className="astro-chat-input w-full resize-none transition-colors"
+                style={{
+                  background: '#FFFFFF',
+                  color: '#0B1220',
+                  caretColor: '#0B1220',
+                  WebkitTextFillColor: '#0B1220',
+                  fontSize: '15px',
+                  fontWeight: 500,
+                  border: '1px solid #CBD5E1',
+                  borderRadius: '12px',
+                  padding: '12px 16px',
+                  minHeight: '48px',
+                  maxHeight: '96px',
+                  outline: 'none',
+                }}
               />
             </div>
             <button
