@@ -9,6 +9,7 @@ import Mind from '@/pages/Mind';
 import Training from '@/pages/Training';
 import Assistant from '@/pages/Assistant';
 import Alerts from '@/pages/Alerts';
+import Rewards from '@/pages/Rewards';
 import NotFound from '@/pages/NotFound';
 import { RecordsProvider } from '@/context/RecordsContext';
 import { GamificationProvider } from '@/context/GamificationContext';
@@ -37,6 +38,7 @@ export default function App() {
                 <Route path="/training" element={<Training />} />
                 <Route path="/assistant" element={<Assistant />} />
                 <Route path="/alerts" element={<Alerts />} />
+                <Route path="/rewards" element={<Rewards />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
             </Routes>

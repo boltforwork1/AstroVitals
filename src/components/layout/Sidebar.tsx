@@ -10,6 +10,7 @@ import {
   Bot,
   Activity,
   Bell,
+  Trophy,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -29,6 +30,7 @@ const navItems: NavItem[] = [
   { to: '/mind', label: 'Mind', icon: Brain },
   { to: '/training', label: 'Training', icon: Dumbbell },
   { to: '/assistant', label: 'Assistant', icon: Bot },
+  { to: '/rewards', label: 'Rewards', icon: Trophy },
 ];
 
 export default function Sidebar() {
